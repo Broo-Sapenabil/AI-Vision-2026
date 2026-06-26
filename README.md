@@ -1,8 +1,8 @@
 # KAD PENGENALAN
-NAMA : MUHAMMAD NABIRULLAH BIN ZUKAIRI
+Name : Muhammad Nabirullah Bin Zukairi
 
-NO MATRIK : BKV0525KA012
+ Matric No : BKV0525KA012
   
-2 DKA SEM 3
+PROGRAM : Diploma Of Computer Technology
 
-TEKNOLOGI KOMPUTERAN
+Course Expectition : Im excited to learn AI!, Im looking foward on this subject so much.
