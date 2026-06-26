@@ -7,11 +7,3 @@ PROGRAM : Diploma Of Computer Technology
 
 Course Expectition : Im excited to learn AI!, Im looking foward on this subject so much.
 
-
-
-## Collaborator ##
-
-## Name  ## Ameer Danish
-
-## Date  ## 26/06/2026
-
