@@ -1,0 +1,2408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>NEON PONG - CYBER ARENA</title>
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    background: #02000b;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+/* =========================
+   GAME AREA
+========================= */
+
+#game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background:
+        radial-gradient(
+            circle at center,
+            #16004a 0%,
+            #050018 45%,
+            #02000b 100%
+        );
+}
+
+/* Cyber grid */
+
+#game::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 200%;
+    height: 100%;
+
+    left: -50%;
+
+    bottom: -40%;
+
+    background-image:
+
+        linear-gradient(
+            rgba(0,255,255,0.18) 1px,
+            transparent 1px
+        ),
+
+        linear-gradient(
+            90deg,
+            rgba(0,255,255,0.18) 1px,
+            transparent 1px
+        );
+
+    background-size: 45px 45px;
+
+    transform:
+        perspective(400px)
+        rotateX(60deg);
+
+    animation: gridMove 4s linear infinite;
+
+    opacity: .5;
+
+}
+
+@keyframes gridMove {
+
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 0 45px;
+    }
+
+}
+
+
+/* =========================
+   TOP UI
+========================= */
+
+#topUI {
+
+    position: absolute;
+
+    top: 20px;
+
+    width: 100%;
+
+    display: flex;
+
+    justify-content: space-around;
+
+    align-items: center;
+
+    z-index: 5;
+
+}
+
+.stat {
+
+    text-align: center;
+
+    min-width: 100px;
+
+}
+
+.label {
+
+    color: #00ffff;
+
+    font-size: 11px;
+
+    letter-spacing: 2px;
+
+}
+
+.value {
+
+    font-size: 28px;
+
+    font-weight: bold;
+
+    text-shadow:
+        0 0 10px #00ffff;
+
+}
+
+#title {
+
+    position: absolute;
+
+    top: 90px;
+
+    width: 100%;
+
+    text-align: center;
+
+    font-size: 36px;
+
+    letter-spacing: 7px;
+
+    color: #00ffff;
+
+    text-shadow:
+
+        0 0 5px #00ffff,
+
+        0 0 20px #0088ff,
+
+        0 0 40px #ff00ff;
+
+}
+
+
+/* =========================
+   CANVAS
+========================= */
+
+canvas {
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+}
+
+
+/* =========================
+   POWER UP DISPLAY
+========================= */
+
+#powerDisplay {
+
+    position: absolute;
+
+    bottom: 25px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    z-index: 5;
+
+    text-align: center;
+
+    color: #ffff00;
+
+    font-weight: bold;
+
+    text-shadow: 0 0 10px yellow;
+
+}
+
+
+/* =========================
+   SCREEN
+========================= */
+
+.screen {
+
+    position: absolute;
+
+    z-index: 20;
+
+    width: 100%;
+
+    height: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: rgba(2,0,11,.86);
+
+}
+
+.panel {
+
+    width: 430px;
+
+    max-width: 90%;
+
+    padding: 35px;
+
+    text-align: center;
+
+    border: 2px solid #00ffff;
+
+    border-radius: 18px;
+
+    background:
+
+        linear-gradient(
+            145deg,
+            rgba(0,255,255,.1),
+            rgba(255,0,255,.08)
+        );
+
+    box-shadow:
+
+        0 0 20px #00ffff,
+
+        inset 0 0 30px rgba(0,255,255,.15);
+
+}
+
+.panel h1 {
+
+    font-size: 34px;
+
+    color: #00ffff;
+
+    text-shadow: 0 0 20px #00ffff;
+
+    margin-bottom: 20px;
+
+}
+
+.panel p {
+
+    line-height: 1.7;
+
+    color: #ddd;
+
+    margin-bottom: 25px;
+
+}
+
+button {
+
+    padding: 15px 40px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+    color: white;
+
+    background:
+
+        linear-gradient(
+            90deg,
+            #00ffff,
+            #8a2be2,
+            #ff00ff
+        );
+
+    box-shadow:
+
+        0 0 15px #00ffff,
+
+        0 0 30px rgba(255,0,255,.5);
+
+    transition: .3s;
+
+}
+
+button:hover {
+
+    transform: scale(1.1);
+
+    box-shadow:
+
+        0 0 25px #00ffff,
+
+        0 0 50px #ff00ff;
+
+}
+
+.hidden {
+
+    display: none;
+
+}
+
+
+/* =========================
+   INSTRUCTIONS
+========================= */
+
+.instructions {
+
+    margin-top: 20px;
+
+    color: #aaa;
+
+    font-size: 12px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<div id="game">
+
+
+    <!-- TOP UI -->
+
+    <div id="topUI">
+
+        <div class="stat">
+
+            <div class="label">SCORE</div>
+
+            <div class="value" id="score">
+
+                0
+
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="label">LEVEL</div>
+
+            <div class="value" id="level">
+
+                1
+
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="label">COMBO</div>
+
+            <div class="value" id="combo">
+
+                x1
+
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="label">LIVES</div>
+
+            <div class="value" id="lives">
+
+                ❤️❤️❤️
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div id="title">
+
+        ⚡ NEON PONG ⚡
+
+    </div>
+
+
+    <canvas id="canvas"></canvas>
+
+
+    <div id="powerDisplay">
+
+        POWER-UP: NONE
+
+    </div>
+
+
+    <!-- START -->
+
+    <div class="screen" id="startScreen">
+
+        <div class="panel">
+
+            <h1>⚡ CYBER ARENA ⚡</h1>
+
+            <p>
+
+                Enter the Neon Arena.
+
+                <br><br>
+
+                Defeat the AI opponent,
+
+                collect power-ups,
+
+                build your combo
+
+                and survive as long as possible.
+
+            </p>
+
+
+            <button onclick="startGame()">
+
+                START BATTLE
+
+            </button>
+
+
+            <div class="instructions">
+
+                🖱 Move Mouse / Touch Screen
+
+                <br>
+
+                ⚡ Collect power-ups
+
+                <br>
+
+                🔥 Build your combo
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- GAME OVER -->
+
+    <div class="screen hidden" id="gameOverScreen">
+
+        <div class="panel">
+
+            <h1>💀 SYSTEM FAILURE</h1>
+
+            <p>
+
+                FINAL SCORE
+
+                <br>
+
+                <strong
+
+                    id="finalScore"
+
+                    style="
+
+                    font-size:50px;
+
+                    color:#00ffff;
+
+                    text-shadow:0 0 20px #00ffff;
+
+                    "
+
+                >
+
+                    0
+
+                </strong>
+
+            </p>
+
+
+            <button onclick="restartGame()">
+
+                REBOOT SYSTEM
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+/* =========================
+   CANVAS
+========================= */
+
+const canvas =
+    document.getElementById("canvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+
+function resize() {
+
+    canvas.width =
+        window.innerWidth;
+
+    canvas.height =
+        window.innerHeight;
+
+}
+
+resize();
+
+window.addEventListener(
+    "resize",
+    resize
+);
+
+
+/* =========================
+   GAME VARIABLES
+========================= */
+
+let gameRunning = false;
+
+let score = 0;
+
+let level = 1;
+
+let combo = 1;
+
+let lives = 3;
+
+let highScore =
+    localStorage.getItem(
+        "neonHighScore"
+    ) || 0;
+
+let particles = [];
+
+let powerUps = [];
+
+let balls = [];
+
+let activePower = "NONE";
+
+let powerTimer = 0;
+
+
+/* =========================
+   PLAYER
+========================= */
+
+const player = {
+
+    x: 55,
+
+    y: 300,
+
+    width: 18,
+
+    height: 130,
+
+    shield: false
+
+};
+
+
+/* =========================
+   AI
+========================= */
+
+const ai = {
+
+    x: 0,
+
+    y: 300,
+
+    width: 18,
+
+    height: 130,
+
+    speed: 4
+
+};
+
+
+/* =========================
+   BALL
+========================= */
+
+function createBall(
+
+    x = canvas.width / 2,
+
+    y = canvas.height / 2,
+
+    dx = 7,
+
+    dy = 4
+
+) {
+
+    return {
+
+        x: x,
+
+        y: y,
+
+        radius: 12,
+
+        dx: dx,
+
+        dy: dy,
+
+        speed: 7
+
+    };
+
+}
+
+
+/* =========================
+   SOUND
+========================= */
+
+const AudioContext =
+    window.AudioContext ||
+    window.webkitAudioContext;
+
+let audioCtx;
+
+
+function sound(
+
+    frequency,
+
+    duration = .08
+
+) {
+
+    if (!audioCtx)
+
+        audioCtx =
+            new AudioContext();
+
+
+    const oscillator =
+        audioCtx.createOscillator();
+
+    const gain =
+        audioCtx.createGain();
+
+
+    oscillator.frequency.value =
+        frequency;
+
+
+    oscillator.type =
+        "sine";
+
+
+    gain.gain.value =
+        .04;
+
+
+    oscillator.connect(gain);
+
+    gain.connect(
+        audioCtx.destination
+    );
+
+
+    oscillator.start();
+
+    oscillator.stop(
+
+        audioCtx.currentTime
+        + duration
+
+    );
+
+}
+
+
+/* =========================
+   START GAME
+========================= */
+
+function startGame() {
+
+    document
+        .getElementById(
+            "startScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    gameRunning = true;
+
+    score = 0;
+
+    level = 1;
+
+    combo = 1;
+
+    lives = 3;
+
+    activePower = "NONE";
+
+    powerTimer = 0;
+
+
+    player.y =
+        canvas.height / 2
+        - player.height / 2;
+
+
+    ai.x =
+        canvas.width - 75;
+
+
+    ai.y =
+        canvas.height / 2
+        - ai.height / 2;
+
+
+    balls = [
+
+        createBall()
+
+    ];
+
+
+    powerUps = [];
+
+    particles = [];
+
+
+    updateUI();
+
+}
+
+
+/* =========================
+   RESTART
+========================= */
+
+function restartGame() {
+
+    document
+
+        .getElementById(
+            "gameOverScreen"
+        )
+
+        .classList.add(
+            "hidden"
+        );
+
+
+    startGame();
+
+}
+
+
+/* =========================
+   PLAYER CONTROL
+========================= */
+
+canvas.addEventListener(
+
+    "mousemove",
+
+    function(e) {
+
+        player.y =
+            e.clientY
+            - player.height / 2;
+
+    }
+
+);
+
+
+canvas.addEventListener(
+
+    "touchmove",
+
+    function(e) {
+
+        e.preventDefault();
+
+
+        player.y =
+            e.touches[0].clientY
+            - player.height / 2;
+
+    },
+
+    {
+
+        passive: false
+
+    }
+
+);
+
+
+/* =========================
+   PARTICLES
+========================= */
+
+function explode(
+
+    x,
+
+    y,
+
+    amount = 20
+
+) {
+
+    for (
+
+        let i = 0;
+
+        i < amount;
+
+        i++
+
+    ) {
+
+        particles.push({
+
+            x: x,
+
+            y: y,
+
+            dx:
+                (Math.random() - .5)
+                * 10,
+
+            dy:
+                (Math.random() - .5)
+                * 10,
+
+            life: 1,
+
+            size:
+                Math.random()
+                * 6 + 2
+
+        });
+
+    }
+
+}
+
+
+function drawParticles() {
+
+    particles.forEach(
+
+        (p, index) => {
+
+            ctx.beginPath();
+
+            ctx.arc(
+
+                p.x,
+
+                p.y,
+
+                p.size,
+
+                0,
+
+                Math.PI * 2
+
+            );
+
+
+            ctx.fillStyle =
+
+                `hsla(
+
+                    ${Math.random()*360},
+
+                    100%,
+
+                    60%,
+
+                    ${p.life}
+
+                )`;
+
+
+            ctx.shadowBlur =
+                20;
+
+
+            ctx.shadowColor =
+                "#00ffff";
+
+
+            ctx.fill();
+
+
+            p.x += p.dx;
+
+            p.y += p.dy;
+
+            p.life -= .025;
+
+
+            if (
+
+                p.life <= 0
+
+            )
+
+                particles.splice(
+
+                    index,
+
+                    1
+
+                );
+
+        }
+
+    );
+
+}
+
+
+/* =========================
+   DRAW PADDLE
+========================= */
+
+function drawPaddle(
+
+    paddle,
+
+    color
+
+) {
+
+    ctx.save();
+
+
+    ctx.shadowBlur =
+        30;
+
+
+    ctx.shadowColor =
+        color;
+
+
+    const gradient =
+        ctx.createLinearGradient(
+
+            paddle.x,
+
+            paddle.y,
+
+            paddle.x
+            + paddle.width,
+
+            paddle.y
+
+        );
+
+
+    gradient.addColorStop(
+
+        0,
+
+        color
+
+    );
+
+
+    gradient.addColorStop(
+
+        1,
+
+        "#ffffff"
+
+    );
+
+
+    ctx.fillStyle =
+        gradient;
+
+
+    ctx.fillRect(
+
+        paddle.x,
+
+        paddle.y,
+
+        paddle.width,
+
+        paddle.height
+
+    );
+
+
+    ctx.restore();
+
+
+}
+
+
+/* =========================
+   DRAW BALL
+========================= */
+
+function drawBall(ball) {
+
+    ctx.save();
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+
+        ball.x,
+
+        ball.y,
+
+        ball.radius,
+
+        0,
+
+        Math.PI * 2
+
+    );
+
+
+    ctx.fillStyle =
+        "#ffffff";
+
+
+    ctx.shadowBlur =
+        35;
+
+
+    ctx.shadowColor =
+        "#ff00ff";
+
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+
+}
+
+
+/* =========================
+   DRAW POWER-UP
+========================= */
+
+function drawPowerUp(p) {
+
+    ctx.save();
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+
+        p.x,
+
+        p.y,
+
+        18,
+
+        0,
+
+        Math.PI * 2
+
+    );
+
+
+    ctx.fillStyle =
+        p.color;
+
+
+    ctx.shadowBlur =
+        25;
+
+
+    ctx.shadowColor =
+        p.color;
+
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+        "#000";
+
+
+    ctx.font =
+        "bold 15px Arial";
+
+
+    ctx.textAlign =
+        "center";
+
+
+    ctx.textBaseline =
+        "middle";
+
+
+    ctx.fillText(
+
+        p.symbol,
+
+        p.x,
+
+        p.y
+
+    );
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================
+   SPAWN POWER UP
+========================= */
+
+function spawnPowerUp() {
+
+    const types = [
+
+        {
+
+            type: "SHIELD",
+
+            symbol: "🛡",
+
+            color: "#00ffff"
+
+        },
+
+        {
+
+            type: "SLOW",
+
+            symbol: "⏱",
+
+            color: "#ffff00"
+
+        },
+
+        {
+
+            type: "MULTI",
+
+            symbol: "✦",
+
+            color: "#ff00ff"
+
+        }
+
+    ];
+
+
+    const power =
+
+        types[
+
+            Math.floor(
+
+                Math.random()
+                * types.length
+
+            )
+
+        ];
+
+
+    powerUps.push({
+
+        x:
+
+            canvas.width / 2
+            + (Math.random() - .5)
+            * 300,
+
+        y:
+
+            180
+            + Math.random()
+            * (
+                canvas.height
+                - 350
+            ),
+
+        type:
+
+            power.type,
+
+        symbol:
+
+            power.symbol,
+
+        color:
+
+            power.color,
+
+        life: 600
+
+    });
+
+}
+
+
+/* =========================
+   ACTIVATE POWER
+========================= */
+
+function activatePower(
+
+    type
+
+) {
+
+    activePower =
+        type;
+
+
+    powerTimer =
+        600;
+
+
+    sound(900);
+
+
+    if (
+
+        type ===
+        "SHIELD"
+
+    ) {
+
+        player.shield =
+            true;
+
+    }
+
+
+    if (
+
+        type ===
+        "SLOW"
+
+    ) {
+
+        balls.forEach(
+
+            ball => {
+
+                ball.dx *= .55;
+
+                ball.dy *= .55;
+
+            }
+
+        );
+
+    }
+
+
+    if (
+
+        type ===
+        "MULTI"
+
+    ) {
+
+        if (
+
+            balls.length
+            < 3
+
+        ) {
+
+            const original =
+                balls[0];
+
+
+            balls.push(
+
+                createBall(
+
+                    original.x,
+
+                    original.y,
+
+                    -original.dx,
+
+                    original.dy
+
+                )
+
+            );
+
+        }
+
+    }
+
+
+    document
+
+        .getElementById(
+
+            "powerDisplay"
+
+        )
+
+        .innerText =
+
+        "POWER-UP: "
+        + type;
+
+}
+
+
+/* =========================
+   UPDATE POWER
+========================= */
+
+function updatePower() {
+
+    if (
+
+        powerTimer > 0
+
+    ) {
+
+        powerTimer--;
+
+
+        if (
+
+            powerTimer <= 0
+
+        ) {
+
+            activePower =
+                "NONE";
+
+
+            player.shield =
+                false;
+
+
+            document
+
+                .getElementById(
+
+                    "powerDisplay"
+
+                )
+
+                .innerText =
+
+                "POWER-UP: NONE";
+
+        }
+
+    }
+
+
+    powerUps.forEach(
+
+        p => {
+
+            p.life--;
+
+        }
+
+    );
+
+
+    powerUps =
+
+        powerUps.filter(
+
+            p =>
+
+                p.life > 0
+
+        );
+
+
+    if (
+
+        Math.random()
+        < .002
+
+    ) {
+
+        spawnPowerUp();
+
+    }
+
+}
+
+
+/* =========================
+   AI MOVEMENT
+========================= */
+
+function updateAI() {
+
+    if (
+
+        balls.length === 0
+
+    )
+
+        return;
+
+
+    const target =
+        balls[0];
+
+
+    let aiCenter =
+
+        ai.y
+        + ai.height / 2;
+
+
+    let difference =
+
+        target.y
+        - aiCenter;
+
+
+    let aiSpeed =
+
+        3.5
+        + level
+        * .45;
+
+
+    if (
+
+        difference > 0
+
+    )
+
+        ai.y += aiSpeed;
+
+
+    else
+
+        ai.y -= aiSpeed;
+
+
+    if (
+
+        ai.y < 150
+
+    )
+
+        ai.y = 150;
+
+
+    if (
+
+        ai.y
+        + ai.height
+        >
+        canvas.height
+        - 50
+
+    )
+
+        ai.y =
+
+            canvas.height
+            - ai.height
+            - 50;
+
+}
+
+
+/* =========================
+   BALL UPDATE
+========================= */
+
+function updateBall(ball) {
+
+    ball.x += ball.dx;
+
+    ball.y += ball.dy;
+
+
+    /* WALL */
+
+    if (
+
+        ball.y
+        - ball.radius
+        <= 150
+
+        ||
+
+        ball.y
+        + ball.radius
+        >=
+        canvas.height
+        - 50
+
+    ) {
+
+        ball.dy *= -1;
+
+        explode(
+
+            ball.x,
+
+            ball.y,
+
+            10
+
+        );
+
+        sound(500);
+
+    }
+
+
+    /* PLAYER HIT */
+
+    if (
+
+        ball.x
+        - ball.radius
+        <=
+
+        player.x
+        + player.width
+
+        &&
+
+        ball.x
+        + ball.radius
+        >=
+
+        player.x
+
+        &&
+
+        ball.y
+        >=
+
+        player.y
+
+        &&
+
+        ball.y
+        <=
+
+        player.y
+        + player.height
+
+        &&
+
+        ball.dx < 0
+
+    ) {
+
+        ball.dx =
+            Math.abs(
+
+                ball.dx
+
+            )
+            + .5;
+
+
+        ball.dy +=
+
+            (
+
+                ball.y
+                -
+
+                (
+
+                    player.y
+                    + player.height / 2
+
+                )
+
+            )
+            * .05;
+
+
+        combo++;
+
+
+        score +=
+
+            10
+            * combo;
+
+
+        explode(
+
+            ball.x,
+
+            ball.y
+
+        );
+
+
+        sound(700);
+
+
+        checkLevel();
+
+
+        updateUI();
+
+    }
+
+
+    /* AI HIT */
+
+    if (
+
+        ball.x
+        + ball.radius
+        >=
+
+        ai.x
+
+        &&
+
+        ball.x
+        - ball.radius
+        <=
+
+        ai.x
+        + ai.width
+
+        &&
+
+        ball.y
+        >=
+
+        ai.y
+
+        &&
+
+        ball.y
+        <=
+
+        ai.y
+        + ai.height
+
+        &&
+
+        ball.dx > 0
+
+    ) {
+
+        ball.dx =
+            -Math.abs(
+
+                ball.dx
+
+            );
+
+
+        ball.dy +=
+
+            (
+
+                ball.y
+                -
+
+                (
+
+                    ai.y
+                    + ai.height / 2
+
+                )
+
+            )
+            * .05;
+
+
+        explode(
+
+            ball.x,
+
+            ball.y,
+
+            15
+
+        );
+
+
+        sound(400);
+
+    }
+
+
+    /* POWER-UP COLLISION */
+
+    powerUps.forEach(
+
+        (power, index) => {
+
+            const distance =
+
+                Math.hypot(
+
+                    ball.x
+                    - power.x,
+
+                    ball.y
+                    - power.y
+
+                );
+
+
+            if (
+
+                distance
+                <
+                30
+
+            ) {
+
+                activatePower(
+
+                    power.type
+
+                );
+
+
+                powerUps.splice(
+
+                    index,
+
+                    1
+
+                );
+
+
+                explode(
+
+                    power.x,
+
+                    power.y,
+
+                    30
+
+                );
+
+            }
+
+        }
+
+    );
+
+
+    /* RIGHT SIDE */
+
+    if (
+
+        ball.x
+        >
+        canvas.width
+        + 50
+
+    ) {
+
+        ball.dx =
+            -Math.abs(
+
+                ball.dx
+
+            );
+
+        combo = 1;
+
+        updateUI();
+
+    }
+
+
+    /* LEFT SIDE */
+
+    if (
+
+        ball.x
+        < -50
+
+    ) {
+
+        if (
+
+            player.shield
+
+        ) {
+
+            ball.x = 100;
+
+            ball.dx =
+                Math.abs(
+
+                    ball.dx
+
+                );
+
+            player.shield =
+                false;
+
+
+            activePower =
+                "NONE";
+
+
+            sound(1000);
+
+
+            explode(
+
+                60,
+
+                ball.y,
+
+                40
+
+            );
+
+        }
+
+        else {
+
+            lives--;
+
+
+            combo = 1;
+
+
+            updateUI();
+
+
+            explode(
+
+                50,
+
+                ball.y,
+
+                40
+
+            );
+
+
+            sound(150);
+
+
+            if (
+
+                lives <= 0
+
+            ) {
+
+                endGame();
+
+            }
+
+            else {
+
+                ball.x =
+                    canvas.width
+                    / 2;
+
+                ball.y =
+                    canvas.height
+                    / 2;
+
+                ball.dx =
+                    7;
+
+                ball.dy =
+                    4;
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =========================
+   LEVEL
+========================= */
+
+function checkLevel() {
+
+    let newLevel =
+
+        Math.floor(
+
+            score / 300
+
+        )
+        + 1;
+
+
+    if (
+
+        newLevel
+        >
+        level
+
+    ) {
+
+        level =
+            newLevel;
+
+
+        balls.forEach(
+
+            ball => {
+
+                ball.dx *=
+                    1.12;
+
+                ball.dy *=
+                    1.12;
+
+            }
+
+        );
+
+
+        sound(1200);
+
+
+        explode(
+
+            canvas.width / 2,
+
+            canvas.height / 2,
+
+            80
+
+        );
+
+    }
+
+}
+
+
+/* =========================
+   DRAW GAME
+========================= */
+
+function drawGame() {
+
+    ctx.clearRect(
+
+        0,
+
+        0,
+
+        canvas.width,
+
+        canvas.height
+
+    );
+
+
+    /* Arena */
+
+    ctx.strokeStyle =
+        "rgba(0,255,255,.3)";
+
+
+    ctx.lineWidth =
+        3;
+
+
+    ctx.strokeRect(
+
+        30,
+
+        145,
+
+        canvas.width - 60,
+
+        canvas.height - 195
+
+    );
+
+
+    /* Center line */
+
+    ctx.setLineDash(
+
+        [15, 20]
+
+    );
+
+
+    ctx.strokeStyle =
+        "rgba(255,0,255,.3)";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+
+        canvas.width / 2,
+
+        150
+
+    );
+
+
+    ctx.lineTo(
+
+        canvas.width / 2,
+
+        canvas.height - 50
+
+    );
+
+
+    ctx.stroke();
+
+
+    ctx.setLineDash([]);
+
+
+    /* Player */
+
+    drawPaddle(
+
+        player,
+
+        player.shield
+            ? "#ffff00"
+            : "#00ffff"
+
+    );
+
+
+    /* AI */
+
+    drawPaddle(
+
+        ai,
+
+        "#ff00ff"
+
+    );
+
+
+    /* Balls */
+
+    balls.forEach(
+
+        ball => {
+
+            drawBall(ball);
+
+        }
+
+    );
+
+
+    /* Power ups */
+
+    powerUps.forEach(
+
+        power => {
+
+            drawPowerUp(power);
+
+        }
+
+    );
+
+
+    drawParticles();
+
+}
+
+
+/* =========================
+   UPDATE GAME
+========================= */
+
+function updateGame() {
+
+    if (
+
+        !gameRunning
+
+    )
+
+        return;
+
+
+    updateAI();
+
+
+    balls.forEach(
+
+        ball => {
+
+            updateBall(ball);
+
+        }
+
+    );
+
+
+    updatePower();
+
+
+    /* Keep player inside arena */
+
+    if (
+
+        player.y
+        <
+        150
+
+    )
+
+        player.y =
+            150;
+
+
+    if (
+
+        player.y
+        + player.height
+        >
+        canvas.height
+        - 50
+
+    )
+
+        player.y =
+
+            canvas.height
+            - player.height
+            - 50;
+
+}
+
+
+/* =========================
+   UI
+========================= */
+
+function updateUI() {
+
+    document
+
+        .getElementById(
+
+            "score"
+
+        )
+
+        .innerText =
+
+        score;
+
+
+    document
+
+        .getElementById(
+
+            "level"
+
+        )
+
+        .innerText =
+
+        level;
+
+
+    document
+
+        .getElementById(
+
+            "combo"
+
+        )
+
+        .innerText =
+
+        "x"
+        + combo;
+
+
+    let hearts = "";
+
+
+    for (
+
+        let i = 0;
+
+        i < lives;
+
+        i++
+
+    )
+
+        hearts += "❤️";
+
+
+    document
+
+        .getElementById(
+
+            "lives"
+
+        )
+
+        .innerText =
+
+        hearts;
+
+}
+
+
+/* =========================
+   GAME OVER
+========================= */
+
+function endGame() {
+
+    gameRunning =
+        false;
+
+
+    if (
+
+        score
+        >
+        highScore
+
+    ) {
+
+        highScore =
+            score;
+
+
+        localStorage.setItem(
+
+            "neonHighScore",
+
+            highScore
+
+        );
+
+    }
+
+
+    document
+
+        .getElementById(
+
+            "finalScore"
+
+        )
+
+        .innerText =
+
+        score;
+
+
+    document
+
+        .getElementById(
+
+            "gameOverScreen"
+
+        )
+
+        .classList.remove(
+
+            "hidden"
+
+        );
+
+}
+
+
+/* =========================
+   GAME LOOP
+========================= */
+
+function gameLoop() {
+
+    updateGame();
+
+    drawGame();
+
+    requestAnimationFrame(
+
+        gameLoop
+
+    );
+
+}
+
+
+gameLoop();
+
+
+</script>
+
+</body>
+
+</html>
