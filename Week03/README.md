@@ -2,7 +2,10 @@
 
 
 Hari ini saya belajar tentang: ______________________
+
 Perkara yang saya paling faham ialah: ______________________
+
 Perkara yang saya masih kurang faham ialah: ______________________
+
 Saya akan meningkatkan pemahaman dengan: ______________________
 
